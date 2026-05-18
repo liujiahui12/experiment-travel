@@ -1,0 +1,17 @@
+@import url('./variables.css');
+@import url('./base.css');
+@import url('./components/button.css');
+@import url('./components/card.css');
+@import url('./components/form.css');
+@import url('./components/modal.css');
+@import url('./components/navbar.css');
+@import url('./components/timeline.css');
+@import url('./components/upload.css');
+@import url('./components/loading.css');
+@import url('./components/empty-state.css');
+@import url('./pages/upload.css');
+@import url('./pages/result.css');
+@import url('./pages/journals.css');
+@import url('./pages/detail.css');
+@import url('./animations.css');
+@import url('./responsive.css');

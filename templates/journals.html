@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>往期日记 - 智能旅行手账</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="page-journals">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <div class="navbar-logo">
+                        <i data-lucide="book-heart"></i>
+                    </div>
+                    <span class="navbar-title">智能旅行手账</span>
+                </div>
+                <div class="navbar-menu">
+                    <a href="/" class="nav-link">
+                        <i data-lucide="plus-circle"></i>
+                        <span>创建日记</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="journals-header">
+            <h1 class="journals-header-title">往期旅行日记</h1>
+            <p class="journals-header-subtitle">回顾每一次美好的旅行时光</p>
+        </header>
+
+        <section class="search-section">
+            <div class="search-form">
+                <div class="search-input-wrapper relative">
+                    <i data-lucide="search" class="search-input-icon"></i>
+                    <input type="text" id="searchLocation" placeholder="搜索地点..." class="form-input">
+                </div>
+                <div class="date-filter">
+                    <input type="date" id="startDate" class="form-input" placeholder="开始日期">
+                    <span class="date-filter-divider">至</span>
+                    <input type="date" id="endDate" class="form-input" placeholder="结束日期">
+                    <button class="btn btn-primary btn-sm" id="searchBtn">
+                        <i data-lucide="filter"></i>
+                        <span>筛选</span>
+                    </button>
+                    <button class="btn btn-ghost btn-sm" id="resetBtn">
+                        <i data-lucide="rotate-ccw"></i>
+                        <span>重置</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <main class="journals-main">
+            <div class="journals-grid" id="journalsGrid"></div>
+            
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-state-icon">
+                    <i data-lucide="book-open" style="width: 100%; height: 100%; opacity: 0.3;"></i>
+                </div>
+                <h3 class="empty-state-title">还没有旅行日记</h3>
+                <p class="empty-state-text">开始上传照片，记录你的旅行故事吧</p>
+                <a href="/" class="btn btn-primary btn-lg">
+                    <i data-lucide="plus-circle"></i>
+                    <span>创建第一篇日记</span>
+                </a>
+            </div>
+
+            <div class="pagination" id="pagination" style="display: none;"></div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        lucide.createIcons();
+
+        const journalsGrid = document.getElementById('journalsGrid');
+        const emptyState = document.getElementById('emptyState');
+        const pagination = document.getElementById('pagination');
+        const searchLocation = document.getElementById('searchLocation');
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        const toastContainer = document.getElementById('toastContainer');
+
+        let currentPage = 1;
+        let isSearchMode = false;
+        let totalPages = 1;
+
+        async function loadJournals(page = 1) {
+            try {
+                const response = await fetch(`/api/journals?page=${page}`);
+                const result = await response.json();
+
+                isSearchMode = false;
+                totalPages = result.pages || 1;
+                renderJournals(result.items || []);
+                renderPagination(result);
+            } catch (error) {
+                journalsGrid.innerHTML = '<div class="empty-state"><p class="empty-state-text">加载失败，请重试</p></div>';
+            }
+        }
+
+        function renderJournals(journals) {
+            if (journals.length === 0) {
+                journalsGrid.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            journalsGrid.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            journalsGrid.innerHTML = journals.map(journal => {
+                const styleClass = `style-tag-${journal.style || 'simple'}`;
+                const styleName = {
+                    'xiaohongshu': '小红书',
+                    'literary': '文艺',
+                    'simple': '简约',
+                    'moments': '朋友圈'
+                }[journal.style] || '简约';
+                
+                const coverImage = journal.timeline && journal.timeline.length > 0 && journal.timeline[0].image
+                    ? `/uploads/${journal.timeline[0].image}`
+                    : null;
+                
+                const coverStyle = coverImage
+                    ? `background-image: url('${coverImage}'); background-size: cover; background-position: center;`
+                    : `background: linear-gradient(135deg, var(--color-primary-bg), var(--color-bg-tertiary)); display: flex; align-items: center; justify-content: center;`;
+
+                return `
+                    <div class="journal-card" onclick="viewJournal('${journal.id}')">
+                        <div class="journal-card-cover" style="${coverStyle}">
+                            ${!coverImage ? '<i data-lucide="image" style="width: 48px; height: 48px; color: var(--color-text-muted);"></i>' : ''}
+                        </div>
+                        <div class="journal-card-body">
+                            <span class="journal-card-date">${journal.capture_date || '未知日期'}</span>
+                            <div class="journal-card-location">
+                                <i data-lucide="map-pin"></i>
+                                <span>${journal.location || '未知地点'}</span>
+                            </div>
+                            <p class="journal-card-preview">${journal.content_preview || '暂无内容'}</p>
+                            <div class="journal-card-tags">
+                                <span class="style-tag ${styleClass}">${styleName}</span>
+                                <span class="style-tag style-tag-simple">${journal.images_count || 0}张照片</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function renderPagination(data) {
+            if (data.pages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+
+            pagination.style.display = 'flex';
+            currentPage = data.page || 1;
+            totalPages = data.pages;
+
+            let html = `
+                <button class="pagination-btn" id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>
+                    <i data-lucide="chevron-left"></i>
+                </button>
+            `;
+
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+
+            if (startPage > 1) {
+                html += `<button class="pagination-number" data-page="1">1</button>`;
+                if (startPage > 2) {
+                    html += `<span style="color: var(--color-text-muted);">...</span>`;
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="pagination-number ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    html += `<span style="color: var(--color-text-muted);">...</span>`;
+                }
+                html += `<button class="pagination-number" data-page="${totalPages}">${totalPages}</button>`;
+            }
+
+            html += `
+                <button class="pagination-btn" id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i data-lucide="chevron-right"></i>
+                </button>
+            `;
+
+            pagination.innerHTML = html;
+            lucide.createIcons();
+
+            document.getElementById('prevPage')?.addEventListener('click', () => {
+                if (currentPage > 1) loadJournals(currentPage - 1);
+            });
+
+            document.getElementById('nextPage')?.addEventListener('click', () => {
+                if (currentPage < totalPages) loadJournals(currentPage + 1);
+            });
+
+            document.querySelectorAll('.pagination-number').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const page = parseInt(btn.dataset.page);
+                    if (page !== currentPage) loadJournals(page);
+                });
+            });
+        }
+
+        function viewJournal(id) {
+            window.location.href = `/journals/${id}`;
+        }
+
+        async function searchJournals() {
+            const location = searchLocation.value.trim();
+            const start = startDate.value;
+            const end = endDate.value;
+
+            if (!location && !start && !end) {
+                loadJournals(1);
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams();
+                if (location) params.append('location', location);
+                if (start) params.append('start_date', start);
+                if (end) params.append('end_date', end);
+
+                const response = await fetch(`/api/journals/search?${params}`);
+                const result = await response.json();
+
+                isSearchMode = true;
+                renderJournals(result.results || []);
+                pagination.style.display = 'none';
+            } catch (error) {
+                showToast('搜索失败，请重试', 'error');
+            }
+        }
+
+        function resetSearch() {
+            searchLocation.value = '';
+            startDate.value = '';
+            endDate.value = '';
+            loadJournals(1);
+        }
+
+        document.getElementById('searchBtn').addEventListener('click', searchJournals);
+        document.getElementById('resetBtn').addEventListener('click', resetSearch);
+
+        searchLocation.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchJournals();
+        });
+
+        function showToast(text, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}"></i>
+                </div>
+                <span class="toast-message">${text}</span>
+                <button class="toast-close">
+                    <i data-lucide="x"></i>
+                </button>
+            `;
+            
+            lucide.createIcons();
+            toastContainer.appendChild(toast);
+
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.classList.add('leaving');
+                setTimeout(() => toast.remove(), 300);
+            });
+
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('leaving');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 3000);
+        }
+
+        loadJournals(1);
+    </script>
+</body>
+</html>

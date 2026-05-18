@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能旅行手账 - 记录你的旅行故事</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="page-upload">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <div class="navbar-logo">
+                        <i data-lucide="book-heart"></i>
+                    </div>
+                    <span class="navbar-title">智能旅行手账</span>
+                </div>
+                <div class="navbar-menu">
+                    <a href="/journals" class="nav-link">
+                        <i data-lucide="library"></i>
+                        <span>我的日记</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <header class="upload-header">
+            <h1 class="upload-header-title">记录你的旅行故事</h1>
+            <p class="upload-header-subtitle">上传照片，AI为你生成专属旅行日记</p>
+        </header>
+
+        <main class="upload-main">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-icon">
+                    <i data-lucide="cloud-upload"></i>
+                </div>
+                <h3 class="upload-title">拖拽照片到这里</h3>
+                <p class="upload-subtitle">或点击选择文件</p>
+                <button class="btn btn-primary btn-lg" id="selectBtn">
+                    <i data-lucide="image-plus"></i>
+                    <span>选择照片</span>
+                </button>
+                <input type="file" id="fileInput" hidden multiple accept=".jpg,.jpeg,.png,.gif">
+                <div class="upload-stats">
+                    <span class="upload-stat">
+                        <i data-lucide="file-image"></i>
+                        JPG、PNG、GIF
+                    </span>
+                    <span class="upload-stat">
+                        <i data-lucide="hard-drive"></i>
+                        单张最大16MB
+                    </span>
+                    <span class="upload-stat">
+                        <i data-lucide="layers"></i>
+                        最多10张
+                    </span>
+                </div>
+            </div>
+
+            <div class="preview-section" id="previewSection" style="display: none;">
+                <div class="preview-header">
+                    <h3 class="preview-title">已选择 <span class="preview-count" id="imageCount">0</span> 张照片</h3>
+                    <button class="btn btn-ghost btn-sm" id="clearBtn">
+                        <i data-lucide="trash-2"></i>
+                        <span>清空</span>
+                    </button>
+                </div>
+                <div class="preview-grid" id="previewGrid"></div>
+            </div>
+
+            <div class="style-section" id="styleSection" style="display: none;">
+                <h3 class="style-section-title">选择日记风格</h3>
+                <div class="style-grid" id="styleGrid">
+                    <div class="style-card selected" data-style="xiaohongshu">
+                        <div class="style-card-icon">📱</div>
+                        <h4 class="style-card-title">小红书风格</h4>
+                        <p class="style-card-desc">活泼生动，适合社交分享</p>
+                    </div>
+                    <div class="style-card" data-style="literary">
+                        <div class="style-card-icon">🌸</div>
+                        <h4 class="style-card-title">文艺治愈风格</h4>
+                        <p class="style-card-desc">诗意满满，温柔记录时光</p>
+                    </div>
+                    <div class="style-card" data-style="simple">
+                        <div class="style-card-icon">📝</div>
+                        <h4 class="style-card-title">简约日记风格</h4>
+                        <p class="style-card-desc">简洁明了，记录真实感受</p>
+                    </div>
+                    <div class="style-card" data-style="moments">
+                        <div class="style-card-icon">💬</div>
+                        <h4 class="style-card-title">朋友圈短句风格</h4>
+                        <p class="style-card-desc">短小精悍，一语道尽心情</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-section" id="submitSection" style="display: none;">
+                <button class="submit-btn" id="submitBtn" disabled>
+                    <i data-lucide="sparkles"></i>
+                    <span>生成旅行日记</span>
+                </button>
+            </div>
+
+            <div class="message" id="message"></div>
+        </main>
+
+        <div class="loading-overlay" id="loadingOverlay">
+            <div class="loading-spinner"></div>
+            <p class="loading-text">正在智能分析图片...</p>
+            <p class="loading-subtext">AI正在提取照片信息并生成日记</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const selectBtn = document.getElementById('selectBtn');
+        const previewSection = document.getElementById('previewSection');
+        const previewGrid = document.getElementById('previewGrid');
+        const imageCount = document.getElementById('imageCount');
+        const clearBtn = document.getElementById('clearBtn');
+        const styleSection = document.getElementById('styleSection');
+        const styleGrid = document.getElementById('styleGrid');
+        const submitSection = document.getElementById('submitSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressFill = document.getElementById('progressFill');
+        const message = document.getElementById('message');
+
+        let selectedFiles = [];
+        let selectedStyle = 'xiaohongshu';
+        const MAX_FILES = 10;
+
+        selectBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        });
+
+        uploadZone.addEventListener('click', () => fileInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+
+        uploadZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            const newFiles = Array.from(files).filter(file => {
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                return validTypes.includes(file.type) && file.size <= 16 * 1024 * 1024;
+            }).slice(0, MAX_FILES - selectedFiles.length);
+            
+            selectedFiles = [...selectedFiles, ...newFiles].slice(0, MAX_FILES);
+            updatePreview();
+            submitBtn.disabled = selectedFiles.length === 0;
+            hideMessage();
+        }
+
+        function updatePreview() {
+            if (selectedFiles.length === 0) {
+                previewSection.style.display = 'none';
+                styleSection.style.display = 'none';
+                submitSection.style.display = 'none';
+                return;
+            }
+
+            previewSection.style.display = 'block';
+            styleSection.style.display = 'block';
+            submitSection.style.display = 'block';
+            
+            imageCount.textContent = selectedFiles.length;
+            previewGrid.innerHTML = '';
+
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                const previewItem = document.createElement('div');
+                previewItem.className = 'preview-item';
+
+                reader.onload = (e) => {
+                    previewItem.innerHTML = `
+                        <img src="${e.target.result}" alt="预览 ${index + 1}">
+                        <div class="preview-overlay">
+                            <span class="preview-index">${index + 1}</span>
+                            <button type="button" class="preview-remove" data-index="${index}">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                    
+                    previewItem.querySelector('.preview-remove').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        removeFile(index);
+                    });
+                };
+                reader.readAsDataURL(file);
+                previewGrid.appendChild(previewItem);
+            });
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            updatePreview();
+            submitBtn.disabled = selectedFiles.length === 0;
+        }
+
+        clearBtn.addEventListener('click', () => {
+            selectedFiles = [];
+            updatePreview();
+            submitBtn.disabled = true;
+            fileInput.value = '';
+        });
+
+        styleGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.style-card');
+            if (!card) return;
+            
+            document.querySelectorAll('.style-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedStyle = card.dataset.style;
+        });
+
+        submitBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) return;
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+            formData.append('style', selectedStyle);
+
+            submitBtn.disabled = true;
+            loadingOverlay.classList.add('active');
+            hideMessage();
+
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                progressFill.style.width = progress + '%';
+            }, 200);
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                clearInterval(progressInterval);
+                progressFill.style.width = '100%';
+
+                setTimeout(() => {
+                    loadingOverlay.classList.remove('active');
+
+                    if (result.success) {
+                        localStorage.setItem('travelResult', JSON.stringify(result));
+                        window.location.href = '/result';
+                    } else {
+                        showMessage(result.message || '生成失败，请重试', 'error');
+                        submitBtn.disabled = false;
+                    }
+                }, 500);
+            } catch (error) {
+                clearInterval(progressInterval);
+                loadingOverlay.classList.remove('active');
+                showMessage('网络异常，请检查连接后重试', 'error');
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showMessage(text, type = 'error') {
+            message.className = `message ${type} show`;
+            message.textContent = text;
+        }
+
+        function hideMessage() {
+            message.className = 'message';
+            message.textContent = '';
+        }
+    </script>
+</body>
+</html>
