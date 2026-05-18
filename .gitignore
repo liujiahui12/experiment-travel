@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# 运行时生成的文件
+uploads/
+exports/
+data/
+*.log
+*.tmp
+journals.json
+
+# 敏感配置文件
+.env
+.env.*
