@@ -1,0 +1,241 @@
+.card {
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: all var(--duration-normal) var(--ease-out);
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.card-bordered {
+    border: 2px solid var(--color-border);
+    box-shadow: none;
+}
+
+.card-bordered:hover {
+    border-color: var(--color-primary-light);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+}
+
+.card-body {
+    padding: var(--spacing-lg);
+}
+
+.card-footer {
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+    background: var(--color-bg-secondary);
+}
+
+.style-card {
+    background: var(--color-bg-primary);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-out);
+    position: relative;
+}
+
+.style-card:hover {
+    border-color: var(--color-primary-light);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.style-card.selected {
+    border-color: var(--color-primary);
+    background: linear-gradient(to bottom, var(--color-primary-bg), transparent);
+}
+
+.style-card.selected::after {
+    content: '';
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    width: 28px;
+    height: 28px;
+    background: var(--color-primary);
+    border-radius: var(--radius-full);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white' stroke-width='3'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'/%3E%3C/svg%3E");
+    background-size: 16px;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: var(--shadow-md);
+}
+
+.style-card-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto var(--spacing-md);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    background: var(--color-bg-tertiary);
+}
+
+.style-card-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.style-card-desc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.poi-card {
+    min-width: 280px;
+    max-width: 280px;
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    transition: all var(--duration-normal) var(--ease-out);
+}
+
+.poi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+.poi-card-name {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.poi-card-distance {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    margin-bottom: var(--spacing-md);
+}
+
+.poi-card-desc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-md);
+}
+
+.poi-card-time {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.journal-card {
+    background: var(--color-bg-primary);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+    transition: all var(--duration-normal) var(--ease-out);
+    cursor: pointer;
+}
+
+.journal-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-2xl);
+}
+
+.journal-card-cover {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--color-primary-bg), var(--color-bg-tertiary));
+}
+
+.journal-card-body {
+    padding: var(--spacing-lg);
+}
+
+.journal-card-date {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-md);
+}
+
+.journal-card-location {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.journal-card-preview {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    margin-bottom: var(--spacing-md);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.journal-card-tags {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.style-tag {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+}
+
+.style-tag-xiaohongshu {
+    background: rgba(236, 72, 153, 0.1);
+    color: #ec4899;
+}
+
+.style-tag-literary {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.style-tag-simple {
+    background: var(--color-primary-bg);
+    color: var(--color-primary);
+}
+
+.style-tag-moments {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+}

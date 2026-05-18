@@ -1,0 +1,261 @@
+@media (max-width: 1200px) {
+    :root {
+        --font-size-4xl: 32px;
+        --font-size-3xl: 28px;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --font-size-4xl: 28px;
+        --font-size-3xl: 24px;
+        --font-size-2xl: 20px;
+    }
+    
+    .container {
+        padding: 0 var(--spacing-md);
+    }
+    
+    .navbar-container {
+        padding: var(--spacing-md);
+    }
+    
+    .navbar-title {
+        font-size: var(--font-size-base);
+    }
+    
+    .nav-link span {
+        display: none;
+    }
+    
+    .navbar-actions {
+        gap: var(--spacing-xs);
+    }
+    
+    .navbar-actions .btn span {
+        display: none;
+    }
+    
+    .export-dropdown-menu {
+        right: 0;
+        left: auto;
+        transform: none;
+    }
+    
+    .upload-zone {
+        padding: var(--spacing-2xl);
+    }
+    
+    .upload-icon {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .upload-icon svg {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .upload-stats {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+    }
+    
+    .preview-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .style-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .journals-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .search-form {
+        flex-direction: column;
+    }
+    
+    .search-input-wrapper {
+        width: 100%;
+    }
+    
+    .date-filter {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .result-main,
+    .detail-main {
+        padding: var(--spacing-md);
+    }
+    
+    .journal-content-box,
+    .detail-content-box {
+        padding: var(--spacing-lg);
+        font-size: var(--font-size-base);
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .style-switcher {
+        width: 100%;
+    }
+    
+    .style-switcher-btn {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .action-bar {
+        flex-direction: column;
+    }
+    
+    .action-bar .btn {
+        width: 100%;
+    }
+    
+    .detail-actions {
+        flex-direction: column-reverse;
+    }
+    
+    .detail-actions .btn {
+        width: 100%;
+    }
+    
+    .toast-container {
+        left: var(--spacing-md);
+        right: var(--spacing-md);
+        top: var(--spacing-md);
+    }
+    
+    .toast {
+        min-width: auto;
+        max-width: none;
+    }
+    
+    .modal-content {
+        max-width: none;
+        margin: var(--spacing-md);
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --font-size-4xl: 24px;
+        --font-size-3xl: 20px;
+        --font-size-2xl: 18px;
+        --font-size-xl: 16px;
+    }
+    
+    .upload-header {
+        padding: var(--spacing-lg) 0;
+    }
+    
+    .upload-zone {
+        padding: var(--spacing-xl);
+    }
+    
+    .upload-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .upload-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .upload-title {
+        font-size: var(--font-size-lg);
+    }
+    
+    .upload-subtitle {
+        font-size: var(--font-size-sm);
+    }
+    
+    .preview-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .style-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .timeline-container {
+        padding-left: 48px;
+    }
+    
+    .timeline-line {
+        left: 16px;
+    }
+    
+    .timeline-node {
+        left: -40px;
+        width: 36px;
+        height: 36px;
+        font-size: var(--font-size-sm);
+    }
+    
+    .timeline-card {
+        padding: var(--spacing-md);
+    }
+    
+    .pois-grid {
+        flex-direction: column;
+    }
+    
+    .poi-card {
+        min-width: auto;
+        max-width: none;
+    }
+    
+    .pagination-btn,
+    .pagination-number {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .detail-info-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .detail-poi-item {
+        flex-direction: column;
+    }
+}
+
+@media (hover: none) {
+    .card-hover:hover,
+    .journal-card:hover,
+    .style-card:hover,
+    .poi-card:hover,
+    .preview-item:hover {
+        transform: none;
+    }
+    
+    .btn-primary:hover:not(:disabled),
+    .btn-secondary:hover:not(:disabled) {
+        transform: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

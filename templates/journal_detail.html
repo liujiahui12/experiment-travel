@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日记详情 - 智能旅行手账</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="page-detail">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <a href="/journals" class="navbar-back">
+                        <i data-lucide="arrow-left"></i>
+                        <span>返回列表</span>
+                    </a>
+                </div>
+                <div class="navbar-actions">
+                    <button class="btn btn-danger btn-sm" id="deleteBtn">
+                        <i data-lucide="trash-2"></i>
+                        <span>删除</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="detail-main" id="detailMain">
+            <div class="loading-inline" id="loadingInline">
+                <div class="loading-inline-spinner"></div>
+                <span>加载中...</span>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="deleteModal">
+        <div class="modal-backdrop" id="modalBackdrop"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">确认删除</h3>
+                <button class="modal-close" id="modalClose">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="delete-confirm-text">确定要删除这篇日记吗？</p>
+                <p class="delete-confirm-warning">此操作无法撤销</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelDelete">取消</button>
+                <button class="btn btn-danger" id="confirmDelete">删除</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        lucide.createIcons();
+
+        const journalId = '{{ journal_id }}';
+        const detailMain = document.getElementById('detailMain');
+        const loadingInline = document.getElementById('loadingInline');
+        const deleteModal = document.getElementById('deleteModal');
+        const toastContainer = document.getElementById('toastContainer');
+
+        async function loadJournal() {
+            try {
+                const response = await fetch(`/api/journals/${journalId}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    renderJournal(result.journal);
+                } else {
+                    detailMain.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i data-lucide="file-x" style="width: 100%; height: 100%; opacity: 0.3;"></i>
+                            </div>
+                            <h3 class="empty-state-title">日记不存在</h3>
+                            <p class="empty-state-text">该日记可能已被删除</p>
+                            <a href="/journals" class="btn btn-primary">
+                                <i data-lucide="arrow-left"></i>
+                                <span>返回列表</span>
+                            </a>
+                        </div>
+                    `;
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                detailMain.innerHTML = `
+                    <div class="empty-state">
+                        <h3 class="empty-state-title">加载失败</h3>
+                        <p class="empty-state-text">请检查网络连接后重试</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderJournal(journal) {
+            const styleName = {
+                'xiaohongshu': '小红书',
+                'literary': '文艺',
+                'simple': '简约',
+                'moments': '朋友圈'
+            }[journal.style] || '简约';
+
+            const styleClass = `style-tag-${journal.style || 'simple'}`;
+
+            let html = `
+                <section class="detail-info-section">
+                    <div class="detail-info-header">
+                        <div class="detail-info-date">${journal.capture_date || '未知日期'}</div>
+                        <div class="detail-info-location">
+                            <i data-lucide="map-pin"></i>
+                            <span>${journal.location || '未知地点'}</span>
+                        </div>
+                    </div>
+                    <div class="detail-info-meta">
+                        <div class="detail-info-item">
+                            <i data-lucide="pen-tool"></i>
+                            <span>文案风格：${styleName}</span>
+                        </div>
+                        <div class="detail-info-item">
+                            <i data-lucide="image"></i>
+                            <span>${journal.images_count || 0}张照片</span>
+                        </div>
+                    </div>
+                </section>
+            `;
+
+            if (journal.timeline && journal.timeline.length > 0) {
+                html += `
+                    <section class="detail-section">
+                        <h3 class="detail-section-title">
+                            <i data-lucide="route"></i>
+                            旅行时间轴
+                        </h3>
+                        <div class="timeline-container">
+                            <div class="timeline-line"></div>
+                            ${journal.timeline.map((item, idx) => `
+                                <div class="timeline-item">
+                                    <div class="timeline-node">${item.index || idx + 1}</div>
+                                    <div class="timeline-card">
+                                        <div class="timeline-header">
+                                            <span class="timeline-time">${item.time || ''}</span>
+                                            <span class="timeline-badge">第${item.index || idx + 1}站</span>
+                                        </div>
+                                        ${item.image ? `
+                                            <div class="timeline-image">
+                                                <img src="/uploads/${item.image}" alt="旅行照片">
+                                            </div>
+                                        ` : ''}
+                                        <div class="timeline-location">
+                                            <i data-lucide="map-pin"></i>
+                                            <span>${item.location || '未知地点'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                `;
+            }
+
+            html += `
+                <section class="detail-section">
+                    <h3 class="detail-section-title">
+                        <i data-lucide="book-open"></i>
+                        日记内容
+                    </h3>
+                    <div class="detail-content-box">${journal.content || '暂无内容'}</div>
+                </section>
+            `;
+
+            if (journal.poi_list && journal.poi_list.length > 0) {
+                html += `
+                    <section class="detail-section">
+                        <h3 class="detail-section-title">
+                            <i data-lucide="map-pin"></i>
+                            周边景点
+                        </h3>
+                        <div class="detail-pois-list">
+                            ${journal.poi_list.map(poi => `
+                                <div class="detail-poi-item">
+                                    <div class="detail-poi-icon">
+                                        <i data-lucide="landmark"></i>
+                                    </div>
+                                    <div class="detail-poi-content">
+                                        <h4 class="detail-poi-name">${poi.name}</h4>
+                                        <p class="detail-poi-desc">${poi.description || '暂无描述'}</p>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                `;
+            }
+
+            html += `
+                <div class="detail-actions">
+                    <button class="btn btn-secondary" onclick="window.location.href='/journals'">
+                        <i data-lucide="arrow-left"></i>
+                        <span>返回列表</span>
+                    </button>
+                </div>
+            `;
+
+            detailMain.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        document.getElementById('deleteBtn').addEventListener('click', () => {
+            deleteModal.classList.add('active');
+        });
+
+        document.getElementById('modalClose').addEventListener('click', closeModal);
+        document.getElementById('modalBackdrop').addEventListener('click', closeModal);
+        document.getElementById('cancelDelete').addEventListener('click', closeModal);
+
+        function closeModal() {
+            deleteModal.classList.remove('active');
+        }
+
+        document.getElementById('confirmDelete').addEventListener('click', async () => {
+            try {
+                const response = await fetch(`/api/journals/${journalId}`, { method: 'DELETE' });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('删除成功', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/journals';
+                    }, 1500);
+                } else {
+                    showToast(result.message || '删除失败', 'error');
+                    closeModal();
+                }
+            } catch (error) {
+                showToast('删除失败，请重试', 'error');
+                closeModal();
+            }
+        });
+
+        function showToast(text, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}"></i>
+                </div>
+                <span class="toast-message">${text}</span>
+                <button class="toast-close">
+                    <i data-lucide="x"></i>
+                </button>
+            `;
+            
+            lucide.createIcons();
+            toastContainer.appendChild(toast);
+
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.classList.add('leaving');
+                setTimeout(() => toast.remove(), 300);
+            });
+
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('leaving');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 3000);
+        }
+
+        loadJournal();
+    </script>
+</body>
+</html>

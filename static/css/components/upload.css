@@ -1,0 +1,174 @@
+.upload-zone {
+    background: var(--color-bg-primary);
+    border: 3px dashed var(--color-border);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-3xl);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--duration-normal) var(--ease-out);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(14, 165, 233, 0.08) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity var(--duration-normal);
+    pointer-events: none;
+}
+
+.upload-zone:hover {
+    border-color: var(--color-primary-light);
+    box-shadow: var(--shadow-lg);
+}
+
+.upload-zone:hover::before {
+    opacity: 1;
+}
+
+.upload-zone.drag-over {
+    border-color: var(--color-primary);
+    border-style: solid;
+    background: var(--color-primary-bg);
+    transform: scale(1.02);
+    box-shadow: 0 0 0 6px rgba(14, 165, 233, 0.15), var(--shadow-xl);
+}
+
+.upload-zone.drag-over::before {
+    opacity: 1;
+}
+
+.upload-icon {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto var(--spacing-xl);
+    background: linear-gradient(135deg, var(--color-primary-light), var(--color-primary));
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-primary);
+    transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.upload-zone:hover .upload-icon {
+    transform: scale(1.1);
+}
+
+.upload-icon svg {
+    width: 48px;
+    height: 48px;
+    color: var(--color-text-inverse);
+}
+
+.upload-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.upload-subtitle {
+    font-size: var(--font-size-base);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xl);
+}
+
+.upload-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+}
+
+.upload-stat {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-lg);
+}
+
+.preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--color-bg-tertiary);
+    box-shadow: var(--shadow-sm);
+    transition: all var(--duration-normal) var(--ease-out);
+    animation: scaleIn var(--duration-normal) var(--ease-out);
+}
+
+.preview-item:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+}
+
+.preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 50%);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--spacing-sm);
+    opacity: 0;
+    transition: opacity var(--duration-fast);
+}
+
+.preview-item:hover .preview-overlay {
+    opacity: 1;
+}
+
+.preview-index {
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    box-shadow: var(--shadow-md);
+}
+
+.preview-remove {
+    width: 28px;
+    height: 28px;
+    background: var(--color-error);
+    color: var(--color-text-inverse);
+    border-radius: var(--radius-full);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+    cursor: pointer;
+    transition: all var(--duration-fast);
+    box-shadow: var(--shadow-md);
+}
+
+.preview-remove:hover {
+    transform: scale(1.1);
+    background: #dc2626;
+}

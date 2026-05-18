@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旅行日记 - 智能旅行手账</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <div class="page-result">
+        <nav class="navbar">
+            <div class="navbar-container">
+                <div class="navbar-brand">
+                    <a href="/" class="navbar-back">
+                        <i data-lucide="arrow-left"></i>
+                        <span>继续上传</span>
+                    </a>
+                </div>
+                <div class="navbar-actions">
+                    <button class="btn btn-ghost btn-sm" id="copyBtn">
+                        <i data-lucide="copy"></i>
+                        <span>复制</span>
+                    </button>
+                    <button class="btn btn-ghost btn-sm" id="saveBtn">
+                        <i data-lucide="save"></i>
+                        <span>保存</span>
+                    </button>
+                    <div class="export-dropdown">
+                        <button class="btn btn-ghost btn-sm" id="exportBtn">
+                            <i data-lucide="download"></i>
+                            <span>导出</span>
+                        </button>
+                        <div class="export-dropdown-menu" id="exportMenu">
+                            <div class="export-dropdown-item" data-format="txt">
+                                <i data-lucide="file-text"></i>
+                                <span>导出为 TXT</span>
+                            </div>
+                            <div class="export-dropdown-item" data-format="pdf">
+                                <i data-lucide="file"></i>
+                                <span>导出为 PDF</span>
+                            </div>
+                            <div class="export-dropdown-item" data-format="docx">
+                                <i data-lucide="file-text"></i>
+                                <span>导出为 DOCX</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="result-main">
+            <section class="result-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="route"></i>
+                        旅行时间轴
+                    </h2>
+                    <span class="section-badge" id="timelineCount">共 0 站</span>
+                </div>
+                <div class="timeline-container" id="timelineContainer">
+                    <div class="timeline-line"></div>
+                </div>
+            </section>
+
+            <section class="result-section" id="poisSection" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="map-pin"></i>
+                        周边推荐景点
+                    </h2>
+                    <span class="section-badge" id="poisCount">共 0 个</span>
+                </div>
+                <div class="pois-grid" id="poisGrid"></div>
+            </section>
+
+            <section class="result-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i data-lucide="pen-tool"></i>
+                        旅行日记
+                    </h2>
+                    <div class="style-switcher" id="styleSwitcher">
+                        <button class="style-switcher-btn active" data-style="xiaohongshu">小红书</button>
+                        <button class="style-switcher-btn" data-style="literary">文艺</button>
+                        <button class="style-switcher-btn" data-style="simple">简约</button>
+                        <button class="style-switcher-btn" data-style="moments">朋友圈</button>
+                    </div>
+                </div>
+                <div class="journal-content-box" id="journalContent">暂无内容</div>
+            </section>
+
+            <div class="action-bar">
+                <button class="btn btn-secondary" onclick="window.location.href='/journals'">
+                    <i data-lucide="library"></i>
+                    <span>查看往期日记</span>
+                </button>
+                <button class="btn btn-secondary" onclick="window.location.href='/'">
+                    <i data-lucide="plus-circle"></i>
+                    <span>创建新日记</span>
+                </button>
+            </div>
+
+            <div class="message" id="message"></div>
+        </main>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        lucide.createIcons();
+
+        let resultData = JSON.parse(localStorage.getItem('travelResult') || '{}');
+        let currentStyle = resultData.style || 'xiaohongshu';
+
+        const timelineContainer = document.getElementById('timelineContainer');
+        const timelineCount = document.getElementById('timelineCount');
+        const poisSection = document.getElementById('poisSection');
+        const poisGrid = document.getElementById('poisGrid');
+        const poisCount = document.getElementById('poisCount');
+        const journalContent = document.getElementById('journalContent');
+        const styleSwitcher = document.getElementById('styleSwitcher');
+        const message = document.getElementById('message');
+        const toastContainer = document.getElementById('toastContainer');
+        const exportMenu = document.getElementById('exportMenu');
+
+        function renderTimeline() {
+            const timeline = resultData.timeline || [];
+            
+            if (timeline.length === 0) {
+                timelineContainer.innerHTML = '<div class="timeline-line"></div><p class="timeline-empty">暂无时间轴数据</p>';
+                timelineCount.textContent = '共 0 站';
+                return;
+            }
+
+            timelineCount.textContent = `共 ${timeline.length} 站`;
+            
+            const items = timeline.map((item, index) => `
+                <div class="timeline-item">
+                    <div class="timeline-node">${item.index || index + 1}</div>
+                    <div class="timeline-card">
+                        <div class="timeline-header">
+                            <span class="timeline-time">${item.time || ''}</span>
+                            <span class="timeline-badge">第${item.index || index + 1}站</span>
+                        </div>
+                        ${item.image ? `
+                            <div class="timeline-image">
+                                <img src="/uploads/${item.image}" alt="旅行照片">
+                            </div>
+                        ` : ''}
+                        <div class="timeline-location">
+                            <i data-lucide="map-pin"></i>
+                            <span>${item.location || '未知地点'}</span>
+                        </div>
+                        <p class="timeline-desc">${item.description || ''}</p>
+                    </div>
+                </div>
+            `).join('');
+            
+            timelineContainer.innerHTML = `<div class="timeline-line"></div>${items}`;
+            lucide.createIcons();
+        }
+
+        function renderPOI() {
+            if (!resultData.images_data || resultData.images_data.length === 0) {
+                poisSection.style.display = 'none';
+                return;
+            }
+
+            const firstImg = resultData.images_data[0];
+            const pois = firstImg.poi_list || [];
+
+            if (pois.length === 0) {
+                poisSection.style.display = 'none';
+                return;
+            }
+
+            poisSection.style.display = 'block';
+            poisCount.textContent = `共 ${pois.length} 个`;
+            
+            poisGrid.innerHTML = pois.map(poi => `
+                <div class="poi-card">
+                    <h4 class="poi-card-name">${poi.name}</h4>
+                    <span class="poi-card-distance">
+                        <i data-lucide="navigation"></i>
+                        ${poi.distance}米
+                    </span>
+                    ${poi.description ? `<p class="poi-card-desc">${poi.description}</p>` : ''}
+                    ${poi.best_time ? `
+                        <div class="poi-card-time">
+                            <i data-lucide="clock"></i>
+                            <span>建议游玩：${poi.best_time}</span>
+                        </div>
+                    ` : ''}
+                    ${poi.tips ? `
+                        <div class="poi-card-time">
+                            <i data-lucide="lightbulb"></i>
+                            <span>${poi.tips}</span>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        function renderContent() {
+            journalContent.textContent = resultData.content || '暂无内容';
+        }
+
+        function updateStyleButtons() {
+            document.querySelectorAll('.style-switcher-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.style === currentStyle);
+            });
+        }
+
+        async function changeStyle(style) {
+            if (style === currentStyle) return;
+
+            currentStyle = style;
+            updateStyleButtons();
+
+            try {
+                const response = await fetch('/change_style', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        images_data: resultData.images_data,
+                        style: style,
+                        date: resultData.date,
+                        location: resultData.location
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    resultData.content = result.content;
+                    resultData.timeline = result.timeline;
+                    resultData.style = style;
+                    resultData.images_data = result.images_data || resultData.images_data;
+                    localStorage.setItem('travelResult', JSON.stringify(resultData));
+                    renderTimeline();
+                    renderContent();
+                    showToast('风格切换成功', 'success');
+                } else {
+                    showToast(result.message || '切换失败', 'error');
+                }
+            } catch (error) {
+                showToast('切换风格失败，请重试', 'error');
+            }
+        }
+
+        styleSwitcher.addEventListener('click', (e) => {
+            const btn = e.target.closest('.style-switcher-btn');
+            if (btn && btn.dataset.style) {
+                changeStyle(btn.dataset.style);
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const content = journalContent.textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                showToast('已复制到剪贴板', 'success');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = content;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast('已复制到剪贴板', 'success');
+            });
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/journals/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        date: resultData.date,
+                        location: resultData.location,
+                        content: resultData.content,
+                        style: resultData.style,
+                        images_data: resultData.images_data,
+                        timeline: resultData.timeline,
+                        poi_list: resultData.images_data && resultData.images_data[0] ? resultData.images_data[0].poi_list : []
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('日记保存成功', 'success');
+                } else {
+                    showToast(result.message || '保存失败', 'error');
+                }
+            } catch (error) {
+                showToast('保存失败，请重试', 'error');
+            }
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            exportMenu.classList.toggle('show');
+        });
+
+        document.addEventListener('click', () => {
+            exportMenu.classList.remove('show');
+        });
+
+        exportMenu.addEventListener('click', async (e) => {
+            const item = e.target.closest('.export-dropdown-item');
+            if (!item) return;
+
+            const format = item.dataset.format;
+            exportFile(format);
+        });
+
+        async function exportFile(format) {
+            try {
+                const response = await fetch(`/export/${format}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: resultData.content,
+                        date: resultData.date
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const ext = format === 'pdf' ? 'pdf' : format === 'docx' ? 'docx' : 'txt';
+                    a.download = `旅行日记_${resultData.date || new Date().toISOString().split('T')[0]}.${ext}`;
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    showToast('导出成功', 'success');
+                } else {
+                    const result = await response.json();
+                    showToast(result.message || '导出失败', 'error');
+                }
+            } catch (error) {
+                showToast('导出失败，请重试', 'error');
+            }
+        }
+
+        function showToast(text, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info'}"></i>
+                </div>
+                <span class="toast-message">${text}</span>
+                <button class="toast-close">
+                    <i data-lucide="x"></i>
+                </button>
+            `;
+            
+            lucide.createIcons();
+            toastContainer.appendChild(toast);
+
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.classList.add('leaving');
+                setTimeout(() => toast.remove(), 300);
+            });
+
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.classList.add('leaving');
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 3000);
+        }
+
+        renderTimeline();
+        renderPOI();
+        renderContent();
+        updateStyleButtons();
+    </script>
+</body>
+</html>
